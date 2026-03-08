@@ -1,0 +1,32 @@
+Project Weekly Sync Meeting
+
+Date: March 7, 2026
+Participants: Manjeet, Rahul, Priya, Amit
+
+Discussion:
+
+The team discussed the progress of the AI Meeting Tracker project. 
+Manjeet reported that the backend APIs for authentication and meeting processing are almost complete. 
+However, some improvements are needed in the action item extraction logic.
+
+Rahul mentioned that the frontend dashboard still needs integration with the backend APIs. 
+He will start working on the React dashboard integration tomorrow.
+
+Priya suggested that the team should also add a search feature for past meetings so users can quickly find summaries and action items.
+
+Amit raised a concern about the file upload feature and suggested adding validation to ensure only text files are uploaded.
+
+Decisions:
+
+The team agreed that the backend API should be finalized before frontend integration begins.
+It was also decided that action items should automatically be assigned when owners are mentioned in the meeting notes.
+
+Action Items:
+
+Manjeet will finish the backend API for meeting processing by Monday.
+Rahul will start integrating the React dashboard with backend APIs starting tomorrow.
+Priya will design the meeting search functionality by next Wednesday.
+Amit will implement file validation for uploads before the next release.
+
+Next Meeting:
+The next progress review meeting will be held on March 14, 2026.

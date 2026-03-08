@@ -1,0 +1,40 @@
+Product Development Weekly Meeting
+
+Date: March 7, 2026
+Participants: Manjeet, Rahul, Priya, Amit, Sneha
+
+Agenda:
+Discussion about current progress on the AI Meeting Tracker application and planning next development tasks.
+
+Discussion:
+
+Manjeet shared the status of the backend APIs. Authentication, meeting creation, and action item extraction APIs are now completed. However, the AI processing service still needs better prompt optimization to improve action item detection.
+
+Rahul reported that the frontend dashboard is working but requires integration with backend APIs for meetings and actions. He will focus on connecting the dashboard with the API endpoints this week.
+
+Priya suggested implementing a search feature for meetings so users can quickly find previous discussions and summaries.
+
+Amit discussed improving the file upload functionality and recommended adding validation to allow only .txt files to be uploaded.
+
+Sneha mentioned that the UI should display action item progress and allow filtering by owner and priority.
+
+Decisions:
+
+The team decided that backend APIs should remain stable before frontend integration begins.
+
+It was also decided that the next feature to implement will be the meeting search functionality.
+
+Action Items:
+
+Manjeet will optimize the AI prompt for better action item extraction by Tuesday.
+
+Rahul will integrate the frontend dashboard with the backend API by Friday.
+
+Priya will design the meeting search feature by Wednesday.
+
+Amit will implement file validation for uploads before the next sprint review.
+
+Sneha will design the UI layout for the action item progress panel by next Monday.
+
+Next Meeting:
+The next project sync meeting will take place on March 14, 2026.
