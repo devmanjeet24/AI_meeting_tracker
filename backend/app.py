@@ -24,7 +24,7 @@ app.register_blueprint(upload_bp, url_prefix="/upload")
 
 @app.route("/")
 def home():
-    return {"message": "AI Meeting Tracker API Running"}
+    return {"message": "AI Meeting Tracker API Running..."}
 
 # Local run only
 if __name__ == "__main__":
