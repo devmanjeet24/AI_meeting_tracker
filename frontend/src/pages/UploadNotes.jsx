@@ -1,7 +1,7 @@
 import { useState } from "react"
 // import Navbar from "../components/Navbar"
 import API from "../api/api"
-import DashboardLayout from "../layout/DashboardLayout"
+import DashboardLayout from "../Layout/DashboardLayout"
 import Loader from "../components/Loader"
 
 export default function UploadNotes(){

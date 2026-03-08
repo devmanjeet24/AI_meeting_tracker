@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 // import Navbar from "../components/Navbar";
-import DashboardLayout from "../layout/DashboardLayout"
+import DashboardLayout from "../Layout/DashboardLayout";
 
 export default function Meetings() {
 

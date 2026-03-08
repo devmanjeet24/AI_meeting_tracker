@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../api/api"
 import ActionCard from "../components/ActionCard"
-import DashboardLayout from "../layout/DashboardLayout.jsx"
+import DashboardLayout from "../Layout/DashboardLayout"
 
 export default function Actions(){
 

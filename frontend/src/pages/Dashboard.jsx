@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import API from "../api/api"
 import MeetingCard from "../components/MeetingCard"
 import ActionCard from "../components/ActionCard"
-import DashboardLayout from "../layout/DashboardLayout"
+import DashboardLayout from "../Layout/DashboardLayout"
 import Loader from "../components/Loader"
 
 export default function Dashboard(){
