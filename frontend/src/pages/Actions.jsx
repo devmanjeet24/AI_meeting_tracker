@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../api/api"
 import ActionCard from "../components/ActionCard"
-import DashboardLayout from "../layout/DashboardLayout"
+import DashboardLayout from "../layout/DashboardLayout.jsx"
 
 export default function Actions(){
 
@@ -34,7 +34,7 @@ export default function Actions(){
 
       <div className="p-8 grid grid-cols-3 gap-6">
 
-      {actions.map(a=>(
+      {actions.map((a) => (
         <ActionCard
         key={a._id}
         action={a}

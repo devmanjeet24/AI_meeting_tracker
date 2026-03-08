@@ -3,7 +3,7 @@ import API from "../api/api"
 import MeetingCard from "../components/MeetingCard"
 import ActionCard from "../components/ActionCard"
 import DashboardLayout from "../layout/DashboardLayout"
-import Loader from "@/components/Loader"
+import Loader from "../components/Loader"
 
 export default function Dashboard(){
 
@@ -167,7 +167,7 @@ export default function Dashboard(){
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-          {actions.slice(0,6).map(a=>(
+          {actions.slice(0,6).map((a) => (
             <ActionCard
               key={a._id}
               action={a}
