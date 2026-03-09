@@ -183,9 +183,12 @@ export default function UploadNotes(){
       })
 
       // AI process
-      await API.post("/meetings/process",{
+      const res = await API.post("/meetings/process",{
         notes
       })
+
+      console.log("API working or not", res.payload);
+      console.log("API working or not", res.data)
 
       alert("Meeting created successfully")
 
@@ -223,7 +226,7 @@ export default function UploadNotes(){
       <div className="p-10 max-w-lg">
 
         <h2 className="text-xl font-bold mb-4">
-          Create Meeting
+          Create Meeting Here
         </h2>
 
         {/* Title */}

@@ -1,0 +1,44 @@
+Meeting Title: AI Meeting Tracker – Feature Improvement Discussion Date:
+09 March 2026 Time: 3:00 PM – 3:45 PM
+
+Participants: - Manjeet – Software Engineer - Ram – Backend Developer -
+Yogesh – Frontend Developer - Kiran – UI/UX Designer - Ankit – DevOps
+Engineer - Dilip – QA Tester - Afroj – Product Coordinator
+
+Agenda: 1. Review the current implementation of the AI Meeting Tracker.
+2. Discuss improvements for the upload notes page and dashboard UI. 3.
+Optimize file upload handling and loader behavior. 4. Plan testing and
+deployment improvements for the next update.
+
+Discussion: The team reviewed the current state of the AI Meeting
+Tracker application and discussed several UI and functionality
+improvements. It was suggested that the upload page should have a
+cleaner layout and a better loading indicator to enhance the user
+experience. The dashboard should clearly display meeting summaries and
+allow easy navigation between meetings. The team also discussed
+improving backend handling for uploaded notes and ensuring stable API
+responses. QA testing will be conducted after UI and backend
+improvements are completed.
+
+Task Allocation:
+
+Manjeet Task: Improve upload page UI and implement proper loader
+behavior. Deadline: 11 March 2026
+
+Ram Task: Optimize backend API for meeting creation and processing.
+Deadline: 12 March 2026
+
+Yogesh Task: Improve dashboard layout and meeting display components.
+Deadline: 11 March 2026
+
+Kiran Task: Provide updated UI/UX design suggestions for upload and
+dashboard pages. Deadline: 10 March 2026
+
+Ankit Task: Review deployment configuration and server performance.
+Deadline: 13 March 2026
+
+Dilip Task: Perform functional testing and document bugs. Deadline: 14
+March 2026
+
+Afroj Task: Coordinate task progress and maintain meeting documentation.
+Deadline: 12 March 2026
