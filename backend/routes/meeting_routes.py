@@ -92,3 +92,17 @@ def search_meetings():
         m["_id"] = str(m["_id"])
 
     return jsonify(meetings)
+
+
+
+    # Delete Meeting by ID
+@meeting_bp.route("/<meeting_id>", methods=["DELETE"])
+@login_required
+def delete_meeting(meeting_id):
+
+    meetings_collection.delete_one({"_id": ObjectId(meeting_id)})
+
+    # optional: delete related actions also
+    actions_collection.delete_many({"meeting_id": meeting_id})
+
+    return jsonify({"message": "Meeting deleted successfully"})
