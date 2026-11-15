@@ -1,13 +1,15 @@
-import os
 from config import Config
 
+
 def read_uploaded_file(file):
+    """Read an uploaded .txt file in memory (nothing is saved to disk)."""
 
-    path = os.path.join(Config.UPLOAD_FOLDER, file.filename)
+    if not file.filename.lower().endswith(".txt"):
+        raise ValueError("Only .txt files are allowed")
 
-    file.save(path)
+    raw = file.read(Config.MAX_UPLOAD_BYTES + 1)
 
-    with open(path, "r") as f:
-        text = f.read()
+    if len(raw) > Config.MAX_UPLOAD_BYTES:
+        raise ValueError("File too large (max 2 MB)")
 
-    return text
+    return raw.decode("utf-8", errors="replace")

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 
 def process_meeting_notes(notes):
@@ -35,7 +36,7 @@ Meeting Notes:
     try:
 
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL,
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -56,8 +57,4 @@ Meeting Notes:
 
         print("Groq error:", e)
 
-        return {
-            "summary": "AI processing failed",
-            "decisions": [],
-            "action_items": []
-        }
+        return None

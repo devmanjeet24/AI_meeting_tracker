@@ -1,38 +1,36 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import AppSidebar from "../components/AppSidebar"
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ title, subtitle, actions, children }) {
 
   return (
 
     <SidebarProvider>
 
-      <div className="flex min-h-screen w-full bg-slate-100">
+      <div className="flex min-h-screen w-full bg-slate-50">
 
-        {/* Sidebar */}
         <AppSidebar />
 
-        {/* Content Area */}
-        <div className="flex flex-col flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
 
-          {/* Top Header */}
-          <header className="flex items-center justify-between h-16 px-6 border-b bg-white shadow-sm">
-
-            <div className="flex items-center gap-3">
-
-              {/* Sidebar Toggle */}
-              <SidebarTrigger className="p-2 rounded-md hover:bg-gray-100 transition"/>
-
-              <h1 className="text-lg font-semibold text-gray-700">
-                AI Meeting Tracker
-              </h1>
-
-            </div>
-
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur md:px-8">
+            <SidebarTrigger className="rounded-md p-2 text-slate-600 hover:bg-slate-100" />
           </header>
 
-          {/* Page Content */}
-          <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-8">
+
+            {title && (
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
+                  {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+                </div>
+
+                {actions}
+
+              </div>
+            )}
 
             {children}
 

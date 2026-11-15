@@ -1,221 +1,235 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
-import DashboardLayout from "../Layout/DashboardLayout";
-import { FaTrash } from "react-icons/fa";
-import { FaStickyNote } from "react-icons/fa";
+import { useEffect, useState } from "react"
+import { Trash2, FileText, Users, CalendarCheck, Search } from "lucide-react"
+import API from "../api/api"
+import DashboardLayout from "../Layout/DashboardLayout"
+import Loader from "../components/Loader"
+import EmptyState from "../components/EmptyState"
+import { badgeCls, btnDanger, btnSecondary, cardCls, inputCls, errorMessage } from "../lib/ui"
+import { formatDate } from "../utils/helpers"
 
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 
 export default function Meetings() {
 
-  const [meetings, setMeetings] = useState([]);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [meetings, setMeetings] = useState([])
+  const [search, setSearch] = useState("")
+  const [typeFilter, setTypeFilter] = useState("All")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const [selectedNotes, setSelectedNotes] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
-
-
-  const fetchMeetings = async () => {
-
-    try {
-
-      const res = await API.get("/meetings");
-      setMeetings(res.data);
-
-    } catch (err) {
-
-      console.log("Error fetching meetings", err);
-
-    }
-
-  };
-
-
-  const deleteMeeting = async (id) => {
-
-    if (!window.confirm("Are you sure you want to delete this meeting?"))
-      return;
-
-    try {
-
-      await API.delete(`/meetings/${id}`);
-
-      setMeetings((prev) => prev.filter((m) => m._id !== id));
-
-    } catch (err) {
-
-      console.log("Error deleting meeting", err);
-
-    }
-
-  };
-
-
-  const openNotes = (notes) => {
-
-    setSelectedNotes(notes || "");
-    setOpenDialog(true);
-
-  };
-
+  const [notesMeeting, setNotesMeeting] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
 
-    fetchMeetings();
+    const load = async () => {
 
-  }, []);
+      try {
 
+        const res = await API.get("/meetings")
+        setMeetings(res.data)
 
-  const filtered = meetings.filter((m) => {
+      } catch {
+
+        setError("Could not load meetings. Please check that the server is running.")
+
+      } finally {
+
+        setLoading(false)
+
+      }
+
+    }
+
+    load()
+
+  }, [])
+
+  const confirmDelete = async () => {
+
+    setDeleting(true)
+
+    try {
+
+      await API.delete(`/meetings/${deleteTarget._id}`)
+
+      setMeetings(prev => prev.filter(m => m._id !== deleteTarget._id))
+      setDeleteTarget(null)
+
+    } catch (err) {
+
+      setError(errorMessage(err, "The meeting could not be deleted."))
+      setDeleteTarget(null)
+
+    } finally {
+
+      setDeleting(false)
+
+    }
+
+  }
+
+  const filtered = meetings.filter(m => {
+
+    const q = search.toLowerCase()
 
     const matchSearch =
-      m.title?.toLowerCase().includes(search.toLowerCase()) ||
-      m.summary?.toLowerCase().includes(search.toLowerCase());
+      m.title?.toLowerCase().includes(q) ||
+      m.summary?.toLowerCase().includes(q)
 
-    const matchType =
-      typeFilter === "All" || m.type === typeFilter;
+    const matchType = typeFilter === "All" || m.type === typeFilter
 
-    return matchSearch && matchType;
+    return matchSearch && matchType
 
-  });
-
+  })
 
   return (
 
-    <DashboardLayout>
+    <DashboardLayout
+      title="Meeting history"
+      subtitle="Browse summaries, decisions and notes from past meetings."
+    >
 
-      <div className="p-8">
+      {loading ? <Loader /> : (
 
-        <h1 className="text-2xl font-bold mb-6">
-          Meeting History
-        </h1>
+        <>
 
+          {error && (
+            <p role="alert" className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
 
-        {/* Search + Filter */}
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row">
 
-        <div className="flex gap-4 mb-6">
+            <div className="relative flex-1 sm:max-w-sm">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                placeholder="Search by title or summary"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={`${inputCls} pl-9`}
+              />
+            </div>
 
-          <input
-            placeholder="Search meetings..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 w-80 rounded"
-          />
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`${inputCls} sm:w-48`}>
+              <option value="All">All types</option>
+              <option value="Standup">Standup</option>
+              <option value="Planning">Planning</option>
+              <option value="Review">Review</option>
+            </select>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="border p-2 rounded"
-          >
+          </div>
 
-            <option value="All">All Meetings</option>
-            <option value="Standup">Standup</option>
-            <option value="Planning">Planning</option>
-            <option value="Review">Review</option>
+          {filtered.length === 0 ? (
+            <EmptyState
+              icon={CalendarCheck}
+              title={meetings.length === 0 ? "No meetings yet" : "No matching meetings"}
+              text={meetings.length === 0 ? "Create a meeting to see its summary here." : "Try a different search or filter."}
+              actionLabel={meetings.length === 0 ? "Create a meeting" : undefined}
+              actionTo="/upload"
+            />
+          ) : (
 
-          </select>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
-        </div>
+              {filtered.map(m => (
 
+                <article key={m._id} className={`${cardCls} flex flex-col p-5`}>
 
-        {/* Meeting Cards */}
+                  <div className="mb-1 flex items-start justify-between gap-3">
 
-        <div className="grid grid-cols-2 gap-6">
+                    <h3 className="font-semibold text-slate-900">{m.title || "Untitled meeting"}</h3>
 
-          {filtered.map((m) => (
+                    {m.type && (
+                      <span className={`${badgeCls} shrink-0 bg-indigo-50 text-indigo-700 ring-indigo-600/20`}>{m.type}</span>
+                    )}
 
-            <div
-              key={m._id}
-              className="border p-4 rounded shadow bg-white"
-            >
+                  </div>
 
-              <h3 className="font-bold text-lg">
-                {m.title || "Untitled Meeting"}
-              </h3>
+                  <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                    {m.created_at && <span>{formatDate(m.created_at)}</span>}
+                    {m.participants?.length > 0 && (
+                      <span className="flex items-center gap-1"><Users size={13} />{m.participants.join(", ")}</span>
+                    )}
+                  </div>
 
-              <p className="text-sm text-gray-500">
-                Type: {m.type || "Not specified"}
-              </p>
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Summary</h4>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{m.summary || "No summary available."}</p>
 
-              <p className="text-sm">
-                Participants: {m.participants?.join(", ") || "None"}
-              </p>
+                  {m.decisions?.length > 0 && (
+                    <>
+                      <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">Decisions</h4>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                        {m.decisions.map((d, i) => <li key={i}>{d}</li>)}
+                      </ul>
+                    </>
+                  )}
 
-              <div className="mt-3">
+                  <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
 
-                <p className="font-semibold">
-                  AI Summary
-                </p>
+                    <button onClick={() => setNotesMeeting(m)} className={btnSecondary}>
+                      <FileText size={15} /> View notes
+                    </button>
 
-                <p className="text-gray-700 text-sm">
-                  {m.summary || "No summary available"}
-                </p>
+                    <button onClick={() => setDeleteTarget(m)} className={`${btnSecondary} text-red-600 hover:bg-red-50`} aria-label={`Delete ${m.title || "meeting"}`}>
+                      <Trash2 size={15} /> Delete
+                    </button>
 
-              </div>
+                  </div>
 
+                </article>
 
-              {/* ACTION BUTTONS */}
-
-              <div className="flex gap-3 mt-4">
-
-                {/* NOTES BUTTON */}
-
-                <button
-                  onClick={() => openNotes(m.notes)}
-                  className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600"
-                >
-                  <FaStickyNote />
-                  Notes
-                </button>
-
-
-                {/* DELETE BUTTON */}
-
-                <button
-                  onClick={() => deleteMeeting(m._id)}
-                  className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600"
-                >
-                  <FaTrash />
-                </button>
-
-              </div>
+              ))}
 
             </div>
 
-          ))}
+          )}
 
-        </div>
+        </>
 
-      </div>
+      )}
 
-
-      {/* NOTES POPUP */}
-
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      <Dialog open={!!notesMeeting} onOpenChange={(o) => !o && setNotesMeeting(null)}>
 
         <DialogContent className="max-w-2xl">
 
           <DialogHeader>
-
-            <DialogTitle>
-              Meeting Notes
-            </DialogTitle>
-
+            <DialogTitle>{notesMeeting?.title || "Meeting notes"}</DialogTitle>
+            <DialogDescription>Original meeting notes</DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 max-h-[400px] overflow-y-auto text-sm text-gray-700 whitespace-pre-line">
-
-            {selectedNotes
-              ? selectedNotes
-              : "No notes available for this meeting."}
-
+          <div className="max-h-[400px] overflow-y-auto whitespace-pre-line text-sm text-slate-700">
+            {notesMeeting?.notes || "No notes available for this meeting."}
           </div>
+
+        </DialogContent>
+
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+
+        <DialogContent>
+
+          <DialogHeader>
+            <DialogTitle>Delete meeting?</DialogTitle>
+            <DialogDescription>
+              &quot;{deleteTarget?.title || "This meeting"}&quot; and its action items will be permanently deleted. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <button onClick={() => setDeleteTarget(null)} className={btnSecondary}>Cancel</button>
+            <button onClick={confirmDelete} disabled={deleting} className={btnDanger}>
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </DialogFooter>
 
         </DialogContent>
 
@@ -223,6 +237,6 @@ export default function Meetings() {
 
     </DashboardLayout>
 
-  );
+  )
 
 }

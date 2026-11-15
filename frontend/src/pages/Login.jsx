@@ -1,32 +1,38 @@
 import { useForm } from "react-hook-form"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
 import { useState } from "react"
 import API from "../api/api"
+import AuthLayout from "../components/AuthLayout"
+import { inputCls, labelCls, btnPrimary, errorMessage } from "../lib/ui"
 
 export default function Login(){
 
-  const {register,handleSubmit} = useForm()
+  const { register, handleSubmit } = useForm()
   const navigate = useNavigate()
+  const location = useLocation()
 
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const onSubmit = async(data)=>{
+  const onSubmit = async (data) => {
 
-    try{
+    setError("")
+
+    try {
 
       setLoading(true)
 
-      const res = await API.post("/auth/login",data)
+      const res = await API.post("/auth/login", data)
 
-      localStorage.setItem("token",res.data.token)
+      localStorage.setItem("token", res.data.token)
 
       navigate("/dashboard")
 
-    }catch(err){
+    } catch (err) {
 
-      alert("Invalid login")
+      setError(errorMessage(err, "Unable to sign in. Please check your connection and try again."))
 
-    }finally{
+    } finally {
 
       setLoading(false)
 
@@ -34,92 +40,41 @@ export default function Login(){
 
   }
 
-  return(
+  return (
 
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to your account to continue."
+      footer={<>Don&apos;t have an account? <Link to="/register" className="font-medium text-indigo-600 hover:underline">Create one</Link></>}
+    >
 
-      <div className="bg-white shadow-lg rounded-xl w-full max-w-md p-8 border">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-        {/* Title */}
+        {location.state?.registered && (
+          <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Account created. Please sign in.</p>
+        )}
 
-        <h2 className="text-2xl font-bold text-center text-slate-800 mb-6">
-          Login to your account
-        </h2>
+        <div>
+          <label htmlFor="email" className={labelCls}>Email</label>
+          <input id="email" type="email" required autoComplete="email" placeholder="you@company.com" className={inputCls} {...register("email")} />
+        </div>
 
+        <div>
+          <label htmlFor="password" className={labelCls}>Password</label>
+          <input id="password" type="password" required autoComplete="current-password" placeholder="Enter your password" className={inputCls} {...register("password")} />
+        </div>
 
-        {/* Form */}
+        {error && (
+          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <button disabled={loading} className={`${btnPrimary} w-full`}>
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
 
-          <div>
+      </form>
 
-            <label className="text-sm text-gray-600">
-              Email
-            </label>
-
-            <input
-            {...register("email")}
-            placeholder="Enter your email"
-            className="border border-slate-300 rounded-md p-2 w-full mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-          </div>
-
-          <div>
-
-            <label className="text-sm text-gray-600">
-              Password
-            </label>
-
-            <input
-            {...register("password")}
-            type="password"
-            placeholder="Enter password"
-            className="border border-slate-300 rounded-md p-2 w-full mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-          </div>
-
-
-          {/* Button */}
-
-          <button
-          disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md font-medium transition flex items-center justify-center gap-2"
-          >
-
-            {loading ? (
-              <>
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
-
-          </button>
-
-        </form>
-
-
-        {/* Register Link */}
-
-        <p className="mt-6 text-sm text-center text-gray-600">
-
-          Don't have an account?
-
-          <Link
-          to="/register"
-          className="text-indigo-600 ml-1 font-medium hover:underline"
-          >
-          Register
-          </Link>
-
-        </p>
-
-      </div>
-
-    </div>
+    </AuthLayout>
 
   )
 

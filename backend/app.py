@@ -13,8 +13,6 @@ app = Flask(__name__)
 # CORS
 CORS(app, supports_credentials=True)
 
-# Config
-app.config["UPLOAD_FOLDER"] = Config.UPLOAD_FOLDER
 
 # Blueprints
 app.register_blueprint(meeting_bp, url_prefix="/meetings")

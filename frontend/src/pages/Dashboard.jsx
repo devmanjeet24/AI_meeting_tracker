@@ -1,185 +1,172 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import { Link } from "react-router-dom"
+import { CalendarCheck, ListTodo, Clock, CheckCircle2, Plus, Search } from "lucide-react"
 import API from "../api/api"
 import MeetingCard from "../components/MeetingCard"
 import ActionCard from "../components/ActionCard"
 import DashboardLayout from "../Layout/DashboardLayout"
 import Loader from "../components/Loader"
+import EmptyState from "../components/EmptyState"
+import { btnPrimary, cardCls, inputCls } from "../lib/ui"
+
+function Stat({ label, value, icon: Icon, tone }) {
+
+  return (
+
+    <div className={`${cardCls} flex items-center gap-4 p-5`}>
+
+      <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${tone}`}>
+        <Icon size={20} />
+      </div>
+
+      <div>
+        <p className="text-sm text-slate-500">{label}</p>
+        <p className="text-2xl font-semibold text-slate-900">{value}</p>
+      </div>
+
+    </div>
+
+  )
+
+}
 
 export default function Dashboard(){
 
-  const [meetings,setMeetings] = useState([])
-  const [actions,setActions] = useState([])
-  const [search,setSearch] = useState("")
-  const [loading,setLoading] = useState(true)
+  const [meetings, setMeetings] = useState([])
+  const [actions, setActions] = useState([])
+  const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const fetchData = async()=>{
+  const fetchData = useCallback(async () => {
 
-    try{
+    try {
 
-      const meetingsRes = await API.get("/meetings")
-      const actionsRes = await API.get("/actions")
+      const [meetingsRes, actionsRes] = await Promise.all([
+        API.get("/meetings"),
+        API.get("/actions")
+      ])
 
       setMeetings(meetingsRes.data)
       setActions(actionsRes.data)
+      setError("")
 
-    }catch(err){
+    } catch {
 
-      console.log("Dashboard fetch error:",err)
+      setError("Could not load your data. Please check that the server is running.")
 
-    }finally{
+    } finally {
+
       setLoading(false)
+
     }
 
-  }
+  }, [])
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchData()
-  },[])
+  }, [fetchData])
 
-  if(loading){
-    return <Loader />
-  }
-
-  const pendingTasks = actions.filter(a=>a.status==="Pending")
-  const completedTasks = actions.filter(a=>a.status==="Done")
+  const pending = actions.filter(a => a.status === "Pending").length
+  const inProgress = actions.filter(a => a.status === "In Progress").length
+  const done = actions.filter(a => a.status === "Done").length
 
   const filteredMeetings = meetings.filter(m =>
     m.title?.toLowerCase().includes(search.toLowerCase())
   )
 
-  return(
+  const openActions = actions.filter(a => a.status !== "Done")
 
-    <DashboardLayout>
+  return (
 
-    <div className="min-h-screen bg-slate-50 p-6 md:p-8">
+    <DashboardLayout
+      title="Dashboard"
+      subtitle="An overview of your meetings and open action items."
+      actions={
+        <Link to="/upload" className={btnPrimary}>
+          <Plus size={16} /> New meeting
+        </Link>
+      }
+    >
 
-      {/* Page Header */}
+      {loading ? <Loader /> : (
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="space-y-10">
 
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-          AI Meeting Tracker Dashboard
-        </h1>
+          {error && (
+            <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
 
-        {/* Search */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat label="Meetings" value={meetings.length} icon={CalendarCheck} tone="bg-indigo-50 text-indigo-600" />
+            <Stat label="Pending" value={pending} icon={Clock} tone="bg-amber-50 text-amber-600" />
+            <Stat label="In progress" value={inProgress} icon={ListTodo} tone="bg-blue-50 text-blue-600" />
+            <Stat label="Completed" value={done} icon={CheckCircle2} tone="bg-emerald-50 text-emerald-600" />
+          </div>
 
-        <input
-          type="text"
-          placeholder="Search meetings..."
-          value={search}
-          onChange={(e)=>setSearch(e.target.value)}
-          className="border border-slate-300 rounded-md px-3 py-2 mt-4 md:mt-0 w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+          <section>
 
-      </div>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
+              <h2 className="text-lg font-semibold text-slate-900">Recent meetings</h2>
 
-      {/* Analytics Cards */}
+              <div className="relative w-full sm:w-72">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search meetings"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className={`${inputCls} pl-9`}
+                />
+              </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-          <p className="text-gray-500 text-sm">Total Meetings</p>
-          <h3 className="text-3xl font-bold text-indigo-600 mt-2">
-            {meetings.length}
-          </h3>
-        </div>
+            {filteredMeetings.length === 0 ? (
+              <EmptyState
+                icon={CalendarCheck}
+                title={meetings.length === 0 ? "No meetings yet" : "No matching meetings"}
+                text={meetings.length === 0 ? "Create your first meeting and the AI will summarize it and extract action items." : "Try a different search term."}
+                actionLabel={meetings.length === 0 ? "Create a meeting" : undefined}
+                actionTo="/upload"
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {filteredMeetings.slice(0, 6).map(m => (
+                  <MeetingCard key={m._id} meeting={m} />
+                ))}
+              </div>
+            )}
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-          <p className="text-gray-500 text-sm">Total Tasks</p>
-          <h3 className="text-3xl font-bold text-blue-600 mt-2">
-            {actions.length}
-          </h3>
-        </div>
+          </section>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-          <p className="text-gray-500 text-sm">Pending Tasks</p>
-          <h3 className="text-3xl font-bold text-yellow-500 mt-2">
-            {pendingTasks.length}
-          </h3>
-        </div>
+          <section>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-          <p className="text-gray-500 text-sm">Completed Tasks</p>
-          <h3 className="text-3xl font-bold text-green-600 mt-2">
-            {completedTasks.length}
-          </h3>
-        </div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">Open action items</h2>
+              <Link to="/actions" className="text-sm font-medium text-indigo-600 hover:underline">View all</Link>
+            </div>
 
-      </div>
+            {openActions.length === 0 ? (
+              <EmptyState
+                icon={ListTodo}
+                title="No open action items"
+                text="Action items extracted from your meetings will appear here."
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {openActions.slice(0, 6).map(a => (
+                  <ActionCard key={a._id} action={a} refresh={fetchData} />
+                ))}
+              </div>
+            )}
 
-
-      {/* Recent Meetings */}
-
-      <div className="mb-10">
-
-        <h2 className="text-xl font-semibold text-slate-700 mb-4">
-          Recent Meetings
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-          {filteredMeetings.slice(0,6).map(m=>(
-            <MeetingCard key={m._id} meeting={m}/>
-          ))}
-
-        </div>
-
-      </div>
-
-
-      {/* Quick Actions */}
-
-      <div className="mb-10">
-
-        <h2 className="text-xl font-semibold text-slate-700 mb-4">
-          Quick Actions
-        </h2>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-
-          <a
-          href="/upload"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-lg text-sm font-medium transition"
-          >
-          Upload Meeting Notes
-          </a>
-
-          <a
-          href="/actions"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-lg text-sm font-medium transition"
-          >
-          View Action Items
-          </a>
+          </section>
 
         </div>
 
-      </div>
-
-
-      {/* Action Items Preview */}
-
-      <div>
-
-        <h2 className="text-xl font-semibold text-slate-700 mb-4">
-          Action Items Preview
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-          {actions.slice(0,6).map((a) => (
-            <ActionCard
-              key={a._id}
-              action={a}
-              refresh={fetchData}
-            />
-          ))}
-
-        </div>
-
-      </div>
-
-    </div>
+      )}
 
     </DashboardLayout>
 

@@ -1,22 +1,25 @@
-import { Link, useNavigate } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
   SidebarFooter
 } from "@/components/ui/sidebar"
 
 import {
   LayoutDashboard,
-  Upload,
+  FilePlus2,
   ListTodo,
   History,
-  LogOut
+  LogOut,
+  CalendarCheck
 } from "lucide-react"
+
+const links = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/upload", label: "New Meeting", icon: FilePlus2 },
+  { to: "/actions", label: "Action Items", icon: ListTodo },
+  { to: "/meetings", label: "Meeting History", icon: History },
+]
 
 export default function AppSidebar() {
 
@@ -29,84 +32,48 @@ export default function AppSidebar() {
 
   return (
 
-    <Sidebar className="border-r  text-slate-200" style={{"backgroundColor": "#0f172a"}}>
+    <Sidebar style={{ backgroundColor: "#0f172a" }}>
 
-      <SidebarContent className="bg-slate-900">
+      <SidebarContent className="bg-slate-900 px-3 py-5">
 
-        {/* App Title */}
-
-        <div className="px-4 py-6 text-xl font-bold text-white">
-          AI Meeting Tracker
+        <div className="mb-6 flex items-center gap-2 px-2 text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
+            <CalendarCheck size={20} />
+          </div>
+          <span className="text-base font-semibold">AI Meeting Tracker</span>
         </div>
 
-        <SidebarGroup>
+        <nav className="flex flex-col gap-1">
 
-          <SidebarGroupLabel className="text-slate-400">
-            Navigation
-          </SidebarGroupLabel>
+          {links.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-indigo-600 text-white"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`
+              }
+            >
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
 
-          <SidebarGroupContent>
-
-            <SidebarMenu>
-
-              <SidebarMenuItem>
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition"
-                >
-                  <LayoutDashboard size={18}/>
-                  Dashboard
-                </Link>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <Link
-                  to="/upload"
-                  className="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition"
-                >
-                  <Upload size={18}/>
-                  Upload Meeting
-                </Link>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <Link
-                  to="/actions"
-                  className="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition"
-                >
-                  <ListTodo size={18}/>
-                  Action Items
-                </Link>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <Link
-                  to="/meetings"
-                  className="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition"
-                >
-                  <History size={18}/>
-                  Meeting History
-                </Link>
-              </SidebarMenuItem>
-
-            </SidebarMenu>
-
-          </SidebarGroupContent>
-
-        </SidebarGroup>
+        </nav>
 
       </SidebarContent>
 
-      {/* Logout bottom */}
-
-      <SidebarFooter className="p-4 bg-slate-950">
+      <SidebarFooter className="bg-slate-900 p-3">
 
         <button
           onClick={logout}
-          className="flex items-center gap-2 w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
         >
-          <LogOut size={16}/>
-          Logout
+          <LogOut size={18} />
+          Sign out
         </button>
 
       </SidebarFooter>

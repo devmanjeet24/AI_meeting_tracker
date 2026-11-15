@@ -74,3 +74,4 @@ Thumbs.db
 # ----------------------
 *.local
 *.sqlite3
+!.env.example

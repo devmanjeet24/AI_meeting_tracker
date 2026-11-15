@@ -1,20 +1,12 @@
-export default function Loader() {
+export default function Loader({ label = "Loading..." }) {
 
   return (
 
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
 
-      <div className="relative w-12 h-12">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" />
 
-        <div className="absolute inset-0 border-4 border-indigo-200 rounded-full"></div>
-
-        <div className="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-
-      </div>
-
-      <p className="text-sm text-gray-500">
-        Loading dashboard...
-      </p>
+      <p className="text-sm text-slate-500">{label}</p>
 
     </div>
 
