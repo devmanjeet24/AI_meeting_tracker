@@ -2,31 +2,34 @@ import { useForm } from "react-hook-form"
 import { useNavigate, Link } from "react-router-dom"
 import { useState } from "react"
 import API from "../api/api"
+import AuthLayout from "../components/AuthLayout"
+import { inputCls, labelCls, btnPrimary, errorMessage } from "../lib/ui"
 
 export default function Register(){
 
-  const {register,handleSubmit} = useForm()
+  const { register, handleSubmit } = useForm()
   const navigate = useNavigate()
 
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const onSubmit = async(data)=>{
+  const onSubmit = async (data) => {
 
-    try{
+    setError("")
+
+    try {
 
       setLoading(true)
 
-      await API.post("/auth/register",data)
+      await API.post("/auth/register", data)
 
-      alert("Account created")
+      navigate("/", { state: { registered: true } })
 
-      navigate("/")
+    } catch (err) {
 
-    }catch{
+      setError(errorMessage(err, "Unable to create the account. Please try again."))
 
-      alert("Register failed")
-
-    }finally{
+    } finally {
 
       setLoading(false)
 
@@ -34,105 +37,42 @@ export default function Register(){
 
   }
 
-  return(
+  return (
 
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Start turning meeting notes into action items."
+      footer={<>Already have an account? <Link to="/" className="font-medium text-indigo-600 hover:underline">Sign in</Link></>}
+    >
 
-      <div className="bg-white shadow-lg rounded-xl w-full max-w-md p-8 border">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-        {/* Title */}
+        <div>
+          <label htmlFor="name" className={labelCls}>Full name</label>
+          <input id="name" required autoComplete="name" placeholder="Jane Doe" className={inputCls} {...register("name")} />
+        </div>
 
-        <h2 className="text-2xl font-bold text-center text-slate-800 mb-6">
-          Create your account
-        </h2>
+        <div>
+          <label htmlFor="email" className={labelCls}>Email</label>
+          <input id="email" type="email" required autoComplete="email" placeholder="you@company.com" className={inputCls} {...register("email")} />
+        </div>
 
-        {/* Form */}
+        <div>
+          <label htmlFor="password" className={labelCls}>Password</label>
+          <input id="password" type="password" required minLength={6} autoComplete="new-password" placeholder="At least 6 characters" className={inputCls} {...register("password")} />
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        )}
 
-          <div>
+        <button disabled={loading} className={`${btnPrimary} w-full`}>
+          {loading ? "Creating account..." : "Create account"}
+        </button>
 
-            <label className="text-sm text-gray-600">
-              Name
-            </label>
+      </form>
 
-            <input
-            {...register("name")}
-            placeholder="Enter your name"
-            className="border border-slate-300 rounded-md p-2 w-full mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-          </div>
-
-          <div>
-
-            <label className="text-sm text-gray-600">
-              Email
-            </label>
-
-            <input
-            {...register("email")}
-            placeholder="Enter your email"
-            className="border border-slate-300 rounded-md p-2 w-full mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-          </div>
-
-          <div>
-
-            <label className="text-sm text-gray-600">
-              Password
-            </label>
-
-            <input
-            {...register("password")}
-            type="password"
-            placeholder="Create password"
-            className="border border-slate-300 rounded-md p-2 w-full mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-          </div>
-
-
-          {/* Button */}
-
-          <button
-          disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md font-medium transition flex items-center justify-center gap-2"
-          >
-
-            {loading ? (
-              <>
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              Creating account...
-              </>
-            ) : (
-              "Register"
-            )}
-
-          </button>
-
-        </form>
-
-
-        {/* Login link */}
-
-        <p className="mt-6 text-sm text-center text-gray-600">
-
-          Already have an account?
-
-          <Link
-          to="/"
-          className="text-indigo-600 ml-1 font-medium hover:underline"
-          >
-          Login
-          </Link>
-
-        </p>
-
-      </div>
-
-    </div>
+    </AuthLayout>
 
   )
 

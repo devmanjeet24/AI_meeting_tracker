@@ -1,154 +1,122 @@
-import { useState } from "react";
-import API from "../api/api";
+import { useState } from "react"
+import { CalendarDays, User } from "lucide-react"
+import API from "../api/api"
+import { badgeCls, cardCls, priorityStyles, statusStyles, btnPrimary, errorMessage } from "../lib/ui"
+
+const STATUSES = ["Pending", "In Progress", "Done"]
 
 export default function ActionCard({ action, refresh }) {
 
-  const [owner, setOwner] = useState(action.owner);
-  const [deadline, setDeadline] = useState(action.deadline);
+  const [owner, setOwner] = useState(action.owner || "")
+  const [deadline, setDeadline] = useState(action.deadline || "")
+  const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
 
-  const statusColors = {
-    "Pending": "bg-yellow-100 text-yellow-800",
-    "In Progress": "bg-blue-100 text-blue-800",
-    "Done": "bg-green-100 text-green-800"
-  };
+  const changed =
+    owner !== (action.owner || "") || deadline !== (action.deadline || "")
 
-  const priorityColors = {
-    "High": "bg-red-100 text-red-800",
-    "Medium": "bg-orange-100 text-orange-800",
-    "Low": "bg-green-100 text-green-800"
-  };
+  const update = async (payload) => {
 
-  const updateStatus = async (status) => {
+    setError("")
+    setSaving(true)
 
     try {
 
-      await API.patch(`/actions/${action._id}`, {
-        status
-      });
+      await API.patch(`/actions/${action._id}`, payload)
 
-      refresh();
+      await refresh()
 
     } catch (err) {
 
-      alert("Update failed");
+      setError(errorMessage(err, "Update failed. Please try again."))
+
+    } finally {
+
+      setSaving(false)
 
     }
 
-  };
-
-  const saveChanges = async () => {
-
-    try {
-
-      await API.patch(`/actions/${action._id}`, {
-        owner,
-        deadline
-      });
-
-      refresh();
-
-    } catch (err) {
-
-      alert("Update failed");
-
-    }
-
-  };
+  }
 
   return (
 
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col">
+    <div className={`${cardCls} flex flex-col p-5`}>
 
-      {/* Task Title */}
+      <div className="mb-3 flex flex-wrap gap-2">
 
-      <h3 className="font-semibold text-lg text-slate-800 mb-3">
-        {action.task}
-      </h3>
-
-
-      {/* Badges */}
-
-      <div className="flex flex-wrap gap-2 mb-4">
-
-        <span
-        className={`px-2 py-1 text-xs font-medium rounded-md ${priorityColors[action.priority]}`}
-        >
-          Priority: {action.priority}
+        <span className={`${badgeCls} ${priorityStyles[action.priority] || priorityStyles.Low}`}>
+          {action.priority || "Low"} priority
         </span>
 
-        <span
-        className={`px-2 py-1 text-xs font-medium rounded-md ${statusColors[action.status]}`}
-        >
+        <span className={`${badgeCls} ${statusStyles[action.status] || statusStyles.Pending}`}>
           {action.status}
         </span>
 
       </div>
 
-
-      {/* Inputs */}
+      <h3 className="mb-4 font-semibold text-slate-900">{action.task}</h3>
 
       <div className="space-y-3">
 
-        <div>
-
-          <label className="text-xs text-gray-500">
-            Owner
-          </label>
-
+        <label className="block">
+          <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <User size={13} /> Owner
+          </span>
           <input
-          value={owner}
-          onChange={(e)=>setOwner(e.target.value)}
-          className="border border-slate-300 rounded-md px-2 py-1 w-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            placeholder="Unassigned"
+            className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
+        </label>
 
-        </div>
-
-        <div>
-
-          <label className="text-xs text-gray-500">
-            Deadline
-          </label>
-
+        <label className="block">
+          <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <CalendarDays size={13} /> Deadline
+          </span>
           <input
-          value={deadline}
-          onChange={(e)=>setDeadline(e.target.value)}
-          className="border border-slate-300 rounded-md px-2 py-1 w-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            placeholder="No deadline"
+            className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
+        </label>
 
-        </div>
-
-        <button
-        onClick={saveChanges}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-2 rounded-md transition"
-        >
-          Save Changes
-        </button>
+        {changed && (
+          <button
+            onClick={() => update({ owner, deadline })}
+            disabled={saving}
+            className={`${btnPrimary} w-full py-1.5`}
+          >
+            Save changes
+          </button>
+        )}
 
       </div>
 
+      <div className="mt-5 inline-flex rounded-lg bg-slate-100 p-1">
 
-      {/* Status Buttons */}
-
-      <div className="flex gap-2 mt-4 flex-wrap">
-
-        <button
-        onClick={() => updateStatus("In Progress")}
-        className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded-md transition"
-        >
-          Start
-        </button>
-
-        <button
-        onClick={() => updateStatus("Done")}
-        className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-2 rounded-md transition"
-        >
-          Done
-        </button>
+        {STATUSES.map((s) => (
+          <button
+            key={s}
+            onClick={() => s !== action.status && update({ status: s })}
+            disabled={saving}
+            className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${
+              action.status === s
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
 
       </div>
+
+      {error && <p role="alert" className="mt-3 text-xs text-red-600">{error}</p>}
 
     </div>
 
-  );
+  )
 
-} 
+}

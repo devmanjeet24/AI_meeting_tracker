@@ -1,282 +1,169 @@
-// import { useState } from "react"
-// // import Navbar from "../components/Navbar"
-// import API from "../api/api"
-// import DashboardLayout from "../Layout/DashboardLayout"
-// import Loader from "../components/Loader"
-
-// export default function UploadNotes(){
-
-//   const [title,setTitle] = useState("")
-//   const [type,setType] = useState("Standup")
-//   const [participants,setParticipants] = useState("")
-//   const [file,setFile] = useState(null)
-//   const [loading,setLoading] = useState(false)
-
-//   const submitMeeting = async()=>{
-
-//     if(!title){
-//       alert("Enter meeting title")
-//       return
-//     }
-
-//     try{
-
-//       setLoading(true)
-
-//       let notes = ""
-
-//       // upload file
-//       if(file){
-
-//         const formData = new FormData()
-//         formData.append("file",file)
-
-//         const uploadRes = await API.post("/upload/notes",formData)
-
-//         notes = uploadRes.data.notes
-
-//       }
-
-//       // create meeting
-//       await API.post("/meetings/create",{
-
-//         title,
-//         notes,
-//         participants: participants.split(","),
-//         type
-
-//       })
-
-//       // AI process
-//       await API.post("/meetings/process",{
-//         notes
-//       })
-
-//       alert("Meeting created successfully")
-
-//     }catch(err){
-
-//       console.log(err)
-//       alert("Error creating meeting")
-
-//     }finally{
-//       setLoading(false)
-//     }
-
-//   }
-
-//   return(
-
-//     <DashboardLayout>
-
-//       {/* <Navbar/> */}
-
-//       <div className="p-10 max-w-lg">
-
-//         <h2 className="text-xl font-bold mb-4">
-//           Create Meeting
-//         </h2>
-
-//         {/* Title */}
-
-//         <input
-//         placeholder="Meeting title"
-//         value={title}
-//         onChange={(e)=>setTitle(e.target.value)}
-//         className="border p-2 w-full mb-4"
-//         />
-
-//         {/* Meeting Type */}
-
-//         <select
-//         value={type}
-//         onChange={(e)=>setType(e.target.value)}
-//         className="border p-2 w-full mb-4">
-
-//           <option>Standup</option>
-//           <option>Planning</option>
-//           <option>Review</option>
-
-//         </select>
-
-//         {/* Participants */}
-
-//         <input
-//         placeholder="Participants (comma separated)"
-//         value={participants}
-//         onChange={(e)=>setParticipants(e.target.value)}
-//         className="border p-2 w-full mb-4"
-//         />
-
-//         {/* File Upload */}
-
-//         <input
-//         type="file"
-//         onChange={(e)=>setFile(e.target.files[0])}
-//         className="mb-4"
-//         />
-
-//         <button
-//         onClick={submitMeeting}
-//         className="bg-blue-500 text-white px-4 py-2 rounded">
-
-//         {loading ? <Loader/> : "Create Meeting"}
-
-//         </button>
-
-//       </div>
-
-//     </DashboardLayout>
-
-//   )
-
-// }
-
-
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import { Paperclip, Sparkles } from "lucide-react"
 import API from "../api/api"
 import DashboardLayout from "../Layout/DashboardLayout"
-import Loader from "../components/Loader"
+import { inputCls, labelCls, btnPrimary, btnSecondary, cardCls, errorMessage } from "../lib/ui"
 
 export default function UploadNotes(){
 
   const navigate = useNavigate()
+  const fileRef = useRef(null)
 
-  const [title,setTitle] = useState("")
-  const [type,setType] = useState("Standup")
-  const [participants,setParticipants] = useState("")
-  const [file,setFile] = useState(null)
-  const [loading,setLoading] = useState(false)
+  const [title, setTitle] = useState("")
+  const [type, setType] = useState("Standup")
+  const [participants, setParticipants] = useState("")
+  const [notes, setNotes] = useState("")
+  const [fileName, setFileName] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const submitMeeting = async()=>{
+  // Upload a .txt file and load its text into the notes field
+  const handleFile = async (e) => {
 
-    if(!title){
-      alert("Enter meeting title")
-      return
-    }
+    const file = e.target.files[0]
 
-    try{
+    if (!file) return
 
-      setLoading(true)
+    setError("")
 
-      let notes = ""
+    try {
 
-      // upload file
-      if(file){
+      const formData = new FormData()
+      formData.append("file", file)
 
-        const formData = new FormData()
-        formData.append("file",file)
+      const res = await API.post("/upload/notes", formData)
 
-        const uploadRes = await API.post("/upload/notes",formData)
+      setNotes(res.data.notes)
+      setFileName(file.name)
 
-        notes = uploadRes.data.notes
+    } catch (err) {
 
-      }
+      setError(errorMessage(err, "The file could not be uploaded."))
 
-      // create meeting
-      await API.post("/meetings/create",{
-        title,
-        notes,
-        participants: participants.split(","),
-        type
-      })
+    } finally {
 
-      // AI process
-      const res = await API.post("/meetings/process",{
-        notes
-      })
+      e.target.value = ""
 
-      console.log("API working or not", res.payload);
-      console.log("API working or not", res.data)
-
-      alert("Meeting created successfully")
-
-      // reset form
-      setTitle("")
-      setParticipants("")
-      setType("Standup")
-      setFile(null)
-
-      // redirect
-      navigate("/dashboard")
-
-    }catch(err){
-
-      console.log(err)
-      alert("Error creating meeting")
-
-    }finally{
-      setLoading(false)
     }
 
   }
 
-  return(
+  const submitMeeting = async (e) => {
 
-    <DashboardLayout>
+    e.preventDefault()
+    setError("")
 
-      {/* Full page loader */}
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
-          <Loader/>
+    if (!title.trim()) {
+      setError("Please enter a meeting title.")
+      return
+    }
+
+    if (!notes.trim()) {
+      setError("Please add meeting notes or upload a .txt file.")
+      return
+    }
+
+    try {
+
+      setLoading(true)
+
+      await API.post("/meetings/process", {
+        title: title.trim(),
+        notes,
+        participants: participants.split(",").map(p => p.trim()).filter(Boolean),
+        type
+      })
+
+      navigate("/meetings")
+
+    } catch (err) {
+
+      setError(errorMessage(err, "The meeting could not be created. Please try again."))
+
+    } finally {
+
+      setLoading(false)
+
+    }
+
+  }
+
+  return (
+
+    <DashboardLayout
+      title="New meeting"
+      subtitle="Add your notes and the AI will generate a summary, decisions and action items."
+    >
+
+      <form onSubmit={submitMeeting} className={`${cardCls} max-w-3xl space-y-5 p-6`}>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+
+          <div className="sm:col-span-2">
+            <label htmlFor="title" className={labelCls}>Meeting title</label>
+            <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Weekly product sync" className={inputCls} />
+          </div>
+
+          <div>
+            <label htmlFor="type" className={labelCls}>Meeting type</label>
+            <select id="type" value={type} onChange={(e) => setType(e.target.value)} className={inputCls}>
+              <option>Standup</option>
+              <option>Planning</option>
+              <option>Review</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="participants" className={labelCls}>Participants</label>
+            <input id="participants" value={participants} onChange={(e) => setParticipants(e.target.value)} placeholder="Comma separated, e.g. Priya, Rahul" className={inputCls} />
+          </div>
+
         </div>
-      )}
 
-      <div className="p-10 max-w-lg">
+        <div>
 
-        <h2 className="text-xl font-bold mb-4">
-          Create Meeting Here
-        </h2>
+          <div className="mb-1.5 flex items-center justify-between">
 
-        {/* Title */}
+            <label htmlFor="notes" className="text-sm font-medium text-slate-700">Meeting notes</label>
 
-        <input
-        placeholder="Meeting title"
-        value={title}
-        onChange={(e)=>setTitle(e.target.value)}
-        className="border p-2 w-full mb-4"
-        />
+            <button type="button" onClick={() => fileRef.current?.click()} className={btnSecondary}>
+              <Paperclip size={14} /> Upload .txt file
+            </button>
 
-        {/* Meeting Type */}
+            <input ref={fileRef} type="file" accept=".txt" onChange={handleFile} className="hidden" />
 
-        <select
-        value={type}
-        onChange={(e)=>setType(e.target.value)}
-        className="border p-2 w-full mb-4">
+          </div>
 
-          <option>Standup</option>
-          <option>Planning</option>
-          <option>Review</option>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={12}
+            placeholder="Paste or type your meeting notes here"
+            className={inputCls}
+          />
 
-        </select>
+          {fileName && <p className="mt-1.5 text-xs text-slate-500">Loaded from {fileName}</p>}
 
-        {/* Participants */}
+        </div>
 
-        <input
-        placeholder="Participants (comma separated)"
-        value={participants}
-        onChange={(e)=>setParticipants(e.target.value)}
-        className="border p-2 w-full mb-4"
-        />
+        {error && (
+          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        )}
 
-        {/* File Upload */}
+        <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-5">
 
-        <input
-        type="file"
-        onChange={(e)=>setFile(e.target.files[0])}
-        className="mb-4"
-        />
+          {loading && <span className="text-sm text-slate-500">Analyzing notes, this can take a few seconds...</span>}
 
-        <button
-        onClick={submitMeeting}
-        className="bg-blue-500 text-white px-4 py-2 rounded">
+          <button type="submit" disabled={loading} className={btnPrimary}>
+            <Sparkles size={16} />
+            {loading ? "Processing..." : "Create meeting"}
+          </button>
 
-        Create Meeting
+        </div>
 
-        </button>
-
-      </div>
+      </form>
 
     </DashboardLayout>
 

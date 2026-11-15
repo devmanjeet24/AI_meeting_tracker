@@ -1,6 +1,7 @@
 from functools import wraps
-from flask import request, jsonify
+from flask import request, jsonify, g
 from utils.jwt_handler import verify_token
+
 
 def login_required(f):
 
@@ -16,6 +17,8 @@ def login_required(f):
 
         if not data:
             return jsonify({"error": "Invalid token"}), 401
+
+        g.user_email = data["email"]
 
         return f(*args, **kwargs)
 
