@@ -11,7 +11,12 @@ from routes.upload_routes import upload_bp
 app = Flask(__name__)
 
 # CORS
-CORS(app, supports_credentials=True)
+# Comma separated list of allowed frontend origins, e.g. https://my-app.vercel.app
+allowed_origins = [
+    o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()
+]
+
+CORS(app, origins=allowed_origins or "*")
 
 
 # Blueprints

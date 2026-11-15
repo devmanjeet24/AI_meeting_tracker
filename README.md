@@ -46,3 +46,14 @@ Production build: `npm run build` (output in `frontend/dist`).
 4. Track tasks under **Action Items** (edit owner and deadline, change status).
 
 Each user can only see their own data.
+
+## Deployment (Render + Vercel)
+**Backend (Render, Web Service):** root directory `backend`, build command `pip install -r requirements.txt`,
+start command `gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2`.
+Set `MONGO_URI`, `GROQ_API_KEY`, `JWT_SECRET`, `CORS_ORIGINS` (your Vercel URL) and `PYTHON_VERSION=3.13.5`.
+A ready-made `render.yaml` is included.
+
+**Frontend (Vercel):** root directory `frontend`, framework preset Vite.
+Set `VITE_API_BASE_URL` to the Render URL (no trailing slash).
+
+In MongoDB Atlas, allow network access from `0.0.0.0/0` so Render can connect.
