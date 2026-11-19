@@ -1,12 +1,13 @@
-import { BrowserRouter,Routes,Route } from "react-router-dom"
+import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom"
 
-import Login from "./pages/Login"
-import Register from "./pages/Register"
+import Auth from "./pages/Auth"
 import Dashboard from "./pages/Dashboard"
 import UploadNotes from "./pages/UploadNotes"
 import Actions from "./pages/Actions"
 import ProtectedRoute from "./routes/ProtectedRoute"
 import Meetings from "./pages/Meetings"
+import MeetingDetail from "./pages/MeetingDetail"
+import Profile from "./pages/Profile"
 
 export default function App(){
 
@@ -16,9 +17,9 @@ export default function App(){
 
       <Routes>
 
-        <Route path="/" element={<Login/>}/>
+        <Route path="/" element={<Auth/>}/>
 
-        <Route path="/register" element={<Register/>}/>
+        <Route path="/register" element={<Auth/>}/>
 
         <Route
         path="/dashboard"
@@ -55,6 +56,12 @@ export default function App(){
  </ProtectedRoute>
  }
 />
+
+        <Route path="/meetings/:id" element={<ProtectedRoute><MeetingDetail/></ProtectedRoute>} />
+
+        <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
+
+        <Route path="*" element={<Navigate to="/dashboard" replace/>} />
 
       </Routes>
 

@@ -1,68 +1,57 @@
-import { CalendarCheck, Sparkles, ListChecks } from "lucide-react"
+import { Sparkles, ListChecks, MessagesSquare } from "lucide-react"
+import FloatingShapes from "./fx/FloatingShapes"
+import TiltCard from "./fx/TiltCard"
+import ReactiveHeadline from "./fx/ReactiveHeadline"
+import ProximityItem from "./fx/ProximityItem"
+import DotGrid from "./fx/DotGrid"
+import Logo from "./Logo"
 
 const points = [
-  { icon: Sparkles, text: "AI-generated summaries and decisions" },
-  { icon: ListChecks, text: "Action items with owners and deadlines" },
-  { icon: CalendarCheck, text: "A searchable history of every meeting" },
+  { icon: Sparkles, title: "Instant summaries", text: "Decisions, risks and topics pulled from raw notes in seconds." },
+  { icon: ListChecks, title: "Actions that get done", text: "Owners, deadlines and a drag-and-drop Kanban board." },
+  { icon: MessagesSquare, title: "Ask your meetings", text: "Question any meeting and get answers from your own notes." },
 ]
 
-export default function AuthLayout({ title, subtitle, children, footer }) {
+export default function AuthLayout({ children }) {
 
   return (
 
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="auth-light relative min-h-screen overflow-x-hidden">
 
-      {/* Brand panel */}
-      <div className="hidden flex-col justify-between bg-slate-900 p-12 text-white lg:flex">
-
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
-            <CalendarCheck size={20} />
-          </div>
-          AI Meeting Tracker
-        </div>
-
-        <div>
-          <h2 className="max-w-md text-3xl font-semibold leading-tight">
-            Turn meeting notes into clear decisions and next steps.
-          </h2>
-
-          <ul className="mt-8 space-y-4">
-            {points.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 text-slate-300">
-                <Icon size={18} className="text-indigo-400" />
-                {text}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <p className="text-sm text-slate-500">
-          &copy; {new Date().getFullYear()} AI Meeting Tracker
-        </p>
-
+      {/* decorative background layers: z-0, pointer-events none, away from text */}
+      <DotGrid />
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <FloatingShapes opacity={0.13} tone="light" pick={[1, 2, 3]} />
       </div>
 
-      {/* Form panel */}
-      <div className="flex items-center justify-center bg-slate-50 p-6">
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-6 py-10 lg:grid-cols-2 lg:gap-20 lg:px-12">
 
-        <div className="w-full max-w-sm">
+        <section className="flex flex-col gap-8 lg:gap-12">
 
-          <div className="mb-8 flex items-center gap-2 text-lg font-semibold text-slate-900 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
-              <CalendarCheck size={20} />
-            </div>
-            AI Meeting Tracker
+          <Logo size={38} tone="light" />
+
+          <div>
+            <ReactiveHeadline
+              lead="Turn conversations into"
+              accent="clear next steps."
+              className="font-display text-4xl leading-[1.1] text-[#0B1F17] sm:text-5xl xl:text-6xl"
+            />
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-[#4B5F55]">
+              Paste your meeting notes and get a summary, decisions and action items you can track to done.
+            </p>
           </div>
 
-          <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
-          <p className="mt-1 mb-6 text-sm text-slate-500">{subtitle}</p>
+          <ul className="hidden max-w-lg sm:block">
+            {points.map((p, i) => <ProximityItem key={p.title} index={i + 1} {...p} />)}
+          </ul>
 
-          {children}
+        </section>
 
-          <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
-
-        </div>
+        <section className="flex justify-center lg:justify-end">
+          <TiltCard className="w-full max-w-[440px]" max={3.5}>
+            <div className="auth-card p-7 sm:p-10">{children}</div>
+          </TiltCard>
+        </section>
 
       </div>
 

@@ -2,11 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from config import Config
 import os
+from pymongo.errors import ServerSelectionTimeoutError
 
 from routes.meeting_routes import meeting_bp
 from routes.action_routes import action_bp
 from routes.auth_routes import auth_bp
 from routes.upload_routes import upload_bp
+from routes.stats_routes import stats_bp
 
 app = Flask(__name__)
 
@@ -24,6 +26,12 @@ app.register_blueprint(meeting_bp, url_prefix="/meetings")
 app.register_blueprint(action_bp, url_prefix="/actions")
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(upload_bp, url_prefix="/upload")
+app.register_blueprint(stats_bp, url_prefix="/stats")
+
+@app.errorhandler(ServerSelectionTimeoutError)
+def db_unreachable(_e):
+    return {"error": "Database is unreachable. Check MongoDB Atlas Network Access (allow your IP) and try again."}, 503
+
 
 @app.route("/")
 def home():

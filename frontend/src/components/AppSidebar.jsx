@@ -1,24 +1,14 @@
 import { NavLink, useNavigate } from "react-router-dom"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter
-} from "@/components/ui/sidebar"
-
-import {
-  LayoutDashboard,
-  FilePlus2,
-  ListTodo,
-  History,
-  LogOut,
-  CalendarCheck
-} from "lucide-react"
+import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
+import { LayoutDashboard, FilePlus2, ListTodo, History, LogOut, UserCircle } from "lucide-react"
+import Logo from "./Logo"
 
 const links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/upload", label: "New Meeting", icon: FilePlus2 },
-  { to: "/actions", label: "Action Items", icon: ListTodo },
   { to: "/meetings", label: "Meeting History", icon: History },
+  { to: "/actions", label: "Action Items", icon: ListTodo },
+  { to: "/profile", label: "Profile", icon: UserCircle },
 ]
 
 export default function AppSidebar() {
@@ -28,20 +18,16 @@ export default function AppSidebar() {
   const logout = () => {
     localStorage.removeItem("token")
     navigate("/")
+    window.location.reload()
   }
 
   return (
 
-    <Sidebar style={{ backgroundColor: "#0f172a" }}>
+    <Sidebar style={{ "--sidebar": "#06150f" }}>
 
-      <SidebarContent className="bg-slate-900 px-3 py-5">
+      <SidebarContent className="bg-[#06150f]/90 px-3 py-6 backdrop-blur-xl">
 
-        <div className="mb-6 flex items-center gap-2 px-2 text-white">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
-            <CalendarCheck size={20} />
-          </div>
-          <span className="text-base font-semibold">AI Meeting Tracker</span>
-        </div>
+        <div className="mb-8 px-2"><Logo /></div>
 
         <nav className="flex flex-col gap-1">
 
@@ -50,15 +36,20 @@ export default function AppSidebar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-300 ${
                   isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-emerald-400/10 text-emerald-200 shadow-[inset_0_0_0_1px_rgba(52,211,153,0.2)]"
+                    : "text-emerald-100/55 hover:bg-white/5 hover:text-emerald-50"
                 }`
               }
             >
-              <Icon size={18} />
-              {label}
+              {({ isActive }) => (
+                <>
+                  {isActive && <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-emerald-300 shadow-[0_0_12px_#34d399]" />}
+                  <Icon size={18} className="transition group-hover:scale-110" />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
 
@@ -66,11 +57,11 @@ export default function AppSidebar() {
 
       </SidebarContent>
 
-      <SidebarFooter className="bg-slate-900 p-3">
+      <SidebarFooter className="bg-[#06150f]/90 p-3">
 
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-100/55 transition hover:bg-red-500/10 hover:text-red-300"
         >
           <LogOut size={18} />
           Sign out

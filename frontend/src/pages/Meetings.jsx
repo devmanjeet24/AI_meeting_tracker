@@ -1,41 +1,39 @@
 import { useEffect, useState } from "react"
-import { Trash2, FileText, Users, CalendarCheck, Search } from "lucide-react"
+import { CalendarCheck, Search, Pin } from "lucide-react"
 import API from "../api/api"
 import DashboardLayout from "../Layout/DashboardLayout"
 import Loader from "../components/Loader"
 import EmptyState from "../components/EmptyState"
-import { badgeCls, btnDanger, btnSecondary, cardCls, inputCls, errorMessage } from "../lib/ui"
-import { formatDate } from "../utils/helpers"
+import MeetingCard from "../components/MeetingCard"
+import Field from "../components/fx/Field"
+import { errorBox } from "../lib/ui"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+const TYPES = ["All", "Standup", "Planning", "Review", "Retro", "1:1", "Client call"]
 
 export default function Meetings() {
 
   const [meetings, setMeetings] = useState([])
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("All")
+  const [pinnedOnly, setPinnedOnly] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  const [notesMeeting, setNotesMeeting] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-
+  // server-side search over title, summary, notes, tags and participants (debounced)
   useEffect(() => {
 
-    const load = async () => {
+    const t = setTimeout(async () => {
 
       try {
 
-        const res = await API.get("/meetings")
+        const params = {}
+        if (search.trim()) params.q = search.trim()
+        if (typeFilter !== "All") params.type = typeFilter
+        if (pinnedOnly) params.pinned = "true"
+
+        const res = await API.get("/meetings", { params })
         setMeetings(res.data)
+        setError("")
 
       } catch {
 
@@ -47,193 +45,58 @@ export default function Meetings() {
 
       }
 
-    }
+    }, 250)
 
-    load()
+    return () => clearTimeout(t)
 
-  }, [])
+  }, [search, typeFilter, pinnedOnly])
 
-  const confirmDelete = async () => {
-
-    setDeleting(true)
-
-    try {
-
-      await API.delete(`/meetings/${deleteTarget._id}`)
-
-      setMeetings(prev => prev.filter(m => m._id !== deleteTarget._id))
-      setDeleteTarget(null)
-
-    } catch (err) {
-
-      setError(errorMessage(err, "The meeting could not be deleted."))
-      setDeleteTarget(null)
-
-    } finally {
-
-      setDeleting(false)
-
-    }
-
-  }
-
-  const filtered = meetings.filter(m => {
-
-    const q = search.toLowerCase()
-
-    const matchSearch =
-      m.title?.toLowerCase().includes(q) ||
-      m.summary?.toLowerCase().includes(q)
-
-    const matchType = typeFilter === "All" || m.type === typeFilter
-
-    return matchSearch && matchType
-
-  })
+  const filtering = search || typeFilter !== "All" || pinnedOnly
 
   return (
 
-    <DashboardLayout
-      title="Meeting history"
-      subtitle="Browse summaries, decisions and notes from past meetings."
-    >
+    <DashboardLayout title="Meeting history" subtitle="Search summaries, decisions, notes, tags and people across every meeting.">
 
-      {loading ? <Loader /> : (
+      {error && <p role="alert" className={`${errorBox} mb-6`}>{error}</p>}
 
-        <>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
 
-          {error && (
-            <p role="alert" className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-          )}
+        <div className="relative flex-1 sm:max-w-md">
+          <Search size={16} className="absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-emerald-100/40" />
+          <Field placeholder="Search anything..." value={search} onChange={(e) => setSearch(e.target.value)} className="!pl-10" />
+        </div>
 
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+        <button
+          onClick={() => setPinnedOnly(p => !p)}
+          className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm transition ${pinnedOnly ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-200" : "border-white/10 text-emerald-100/60 hover:bg-white/5"}`}
+        >
+          <Pin size={14} /> Pinned
+        </button>
 
-            <div className="relative flex-1 sm:max-w-sm">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                placeholder="Search by title or summary"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={`${inputCls} pl-9`}
-              />
-            </div>
+      </div>
 
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`${inputCls} sm:w-48`}>
-              <option value="All">All types</option>
-              <option value="Standup">Standup</option>
-              <option value="Planning">Planning</option>
-              <option value="Review">Review</option>
-            </select>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {TYPES.map(t => (
+          <button key={t} onClick={() => setTypeFilter(t)}
+            className={`rounded-full px-4 py-1.5 text-sm transition ${typeFilter === t ? "bg-emerald-400/15 text-emerald-200 ring-1 ring-emerald-300/30" : "text-emerald-100/55 ring-1 ring-white/10 hover:bg-white/5"}`}>
+            {t}
+          </button>
+        ))}
+      </div>
 
-          </div>
-
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon={CalendarCheck}
-              title={meetings.length === 0 ? "No meetings yet" : "No matching meetings"}
-              text={meetings.length === 0 ? "Create a meeting to see its summary here." : "Try a different search or filter."}
-              actionLabel={meetings.length === 0 ? "Create a meeting" : undefined}
-              actionTo="/upload"
-            />
-          ) : (
-
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-
-              {filtered.map(m => (
-
-                <article key={m._id} className={`${cardCls} flex flex-col p-5`}>
-
-                  <div className="mb-1 flex items-start justify-between gap-3">
-
-                    <h3 className="font-semibold text-slate-900">{m.title || "Untitled meeting"}</h3>
-
-                    {m.type && (
-                      <span className={`${badgeCls} shrink-0 bg-indigo-50 text-indigo-700 ring-indigo-600/20`}>{m.type}</span>
-                    )}
-
-                  </div>
-
-                  <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                    {m.created_at && <span>{formatDate(m.created_at)}</span>}
-                    {m.participants?.length > 0 && (
-                      <span className="flex items-center gap-1"><Users size={13} />{m.participants.join(", ")}</span>
-                    )}
-                  </div>
-
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Summary</h4>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{m.summary || "No summary available."}</p>
-
-                  {m.decisions?.length > 0 && (
-                    <>
-                      <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">Decisions</h4>
-                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                        {m.decisions.map((d, i) => <li key={i}>{d}</li>)}
-                      </ul>
-                    </>
-                  )}
-
-                  <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
-
-                    <button onClick={() => setNotesMeeting(m)} className={btnSecondary}>
-                      <FileText size={15} /> View notes
-                    </button>
-
-                    <button onClick={() => setDeleteTarget(m)} className={`${btnSecondary} text-red-600 hover:bg-red-50`} aria-label={`Delete ${m.title || "meeting"}`}>
-                      <Trash2 size={15} /> Delete
-                    </button>
-
-                  </div>
-
-                </article>
-
-              ))}
-
-            </div>
-
-          )}
-
-        </>
-
+      {loading ? <Loader /> : meetings.length === 0 ? (
+        <EmptyState
+          icon={CalendarCheck}
+          title={filtering ? "No matching meetings" : "No meetings yet"}
+          text={filtering ? "Try a different search or filter." : "Create a meeting to see its summary here."}
+          actionLabel={filtering ? undefined : "Create a meeting"}
+          actionTo="/upload"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {meetings.map((m, i) => <MeetingCard key={m._id} meeting={m} index={Math.min(i, 12)} />)}
+        </div>
       )}
-
-      <Dialog open={!!notesMeeting} onOpenChange={(o) => !o && setNotesMeeting(null)}>
-
-        <DialogContent className="max-w-2xl">
-
-          <DialogHeader>
-            <DialogTitle>{notesMeeting?.title || "Meeting notes"}</DialogTitle>
-            <DialogDescription>Original meeting notes</DialogDescription>
-          </DialogHeader>
-
-          <div className="max-h-[400px] overflow-y-auto whitespace-pre-line text-sm text-slate-700">
-            {notesMeeting?.notes || "No notes available for this meeting."}
-          </div>
-
-        </DialogContent>
-
-      </Dialog>
-
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-
-        <DialogContent>
-
-          <DialogHeader>
-            <DialogTitle>Delete meeting?</DialogTitle>
-            <DialogDescription>
-              &quot;{deleteTarget?.title || "This meeting"}&quot; and its action items will be permanently deleted. This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <button onClick={() => setDeleteTarget(null)} className={btnSecondary}>Cancel</button>
-            <button onClick={confirmDelete} disabled={deleting} className={btnDanger}>
-              {deleting ? "Deleting..." : "Delete"}
-            </button>
-          </DialogFooter>
-
-        </DialogContent>
-
-      </Dialog>
 
     </DashboardLayout>
 
